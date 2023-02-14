@@ -1,10 +1,12 @@
-import requests
 import cv2
-import numpy as np
 from PIL import Image
+import requests
+from patchify import patchify
+import numpy as np
 import streamlit as st 
 from keras.models import load_model
 from streamlit_lottie import st_lottie
+import matplotlib.pyplot as plt
 
 cnn = load_model('model.h5')
 
@@ -13,6 +15,21 @@ def process_data(img):
     print("Curr shape",arr.shape)
     arr = cv2.cvtColor(arr, cv2.COLOR_BGRA2BGR)
     arr = cv2.resize(arr,(20,20))
+    print("New shape",arr.shape)
+
+    # Code to improve accuracy
+    
+    # newImg = cv2.resize(arr,(400,400))
+    # patches = patchify(newImg, (80,80,3), step=80)
+
+    # print("Patch Shape",patches.shape)
+    # for i in range(patches.shape[0]):
+    #     for j in range(patches.shape[1]):
+    #         single_patch_img = patches[i,j,:,:,:]
+    #         single_patch_img = np.array(single_patch_img[0])
+    #         print(single_patch_img.shape)
+    #         plt.imsave('./images/' + 'image_' + '_'+ str(i)+str(j)+'.png', single_patch_img)
+
     arr = arr.reshape(-1, 20,20,3)
     arr = arr/255
     return arr
@@ -21,7 +38,7 @@ def predict_value(img):
     data = process_data(img)
     result = cnn.predict(data)
     result = np.argmax(result)
-    print(result)
+    print("Result", result)
     return result
 
 def load_image(image_file):
@@ -82,5 +99,6 @@ with st.container():
         st.image(img,width=250)
 
         res = predict_value(img)
+        myMap = ['No Aircraft Detected','Aircraft Detected']
+        st.header(myMap[res])
 
-        st.write(res)
